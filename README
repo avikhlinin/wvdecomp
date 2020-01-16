@@ -1,0 +1,3 @@
+This is a source code for the wavelet decomposition algorithm (wvdecomp) by Alexey Vikhlinin. See wvdecomp.pdf for short description and (incomplete) summary of command line arguments. For a complete list, examine the source code.
+
+The code compiles with typical fortran-95 and C compilers (such as gfortran/gcc). Unfortunately, the author cannot provide any support for compilation.
