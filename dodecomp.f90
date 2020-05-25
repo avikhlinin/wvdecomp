@@ -197,9 +197,9 @@ subroutine dodecomp &
         call marith(class,'=',class,'*',exposure,nx*ny)
         call marith(cj1,'=',cj1,'*',exposure,nx*ny)
       endif
-      if (subtractbg) then
-        call marith(class,'=',class,'+',bg,nx*ny)
-      endif
+      ! if (subtractbg) then
+      !   call marith(class,'=',class,'+',bg,nx*ny)
+      ! endif
       
       if (j.eq.1) then
         if ((.not.poisson0).and.(.not.qerror)) then
