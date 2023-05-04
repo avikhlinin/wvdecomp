@@ -1,6 +1,6 @@
 FC = gfortran
 CC = gcc
-FFLAGS = -O -ffixed-line-length-132 -fno-second-underscore -Wall -g -fbackslash
+FFLAGS = -O -ffixed-line-length-132 -fno-second-underscore -Wall -g -fbackslash -fallow-argument-mismatch -Wno-integer-division
 
 CFLAGS=-g -O
 
@@ -19,6 +19,8 @@ READLINELIBS= -L/soft/readline/lib -lreadline -lhistory -ltermcap
 FITSLIBS = -L/soft/cfitsio/lib -lcfitsio
 
 OBJ = 	wvdecomp.o	\
+	floodfill90.o	\
+	floodfill_interface.o \
 	dodecomp.o	\
 	calc_poisson_rms.o	\
 	conv_eq_gauss.o	\
@@ -37,10 +39,10 @@ OBJ = 	wvdecomp.o	\
 	conv_rect1_1D_d.o yes.o no.o zhhelp.o \
 	w_f_i.o readwrite.o strcat.o splitwords.o \
 	rmblanks.o replace_char.o r_f_i.o r_f_i_u.o ft_printerr.o o_f_i.o \
-	none.o newunit.o msarith.o mcopy.o marith.o floodfill.o \
+	none.o newunit.o msarith.o mcopy.o marith.o \
 	imsmo.o idistance.o if_peak.o cr_f_i.o conv_rect1.o check_naxis.o \
 	exiterror.o xcopynoscale.o abs_path.o resize_img.o xcopyscale.o \
-	real_path.o u_wants_clob.o fixstring.o fcstln.o
+	real_path.o u_wants_clob.o fixstring.o fcstln.o zhexit.o
 
 #OBJ = wvdecomp.o atrousdecomp.o atrousimg.o atrousstep.o atroussmo.o \
 #	atrousdec.o restore.o

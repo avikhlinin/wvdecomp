@@ -9,6 +9,7 @@ subroutine dodecomp &
      nx,ny,scalemin,scalemax,threshold,thresholdmin,poisson,niter,tmode,&
      tminmode,detectnegative,subtractbg,divbyexp,threshbg,considershape, &
      qsavehist,qsavenoise,savehist,shdescriptor,outkey,rwvmax)
+  ! use floodfill90
   implicit none
   integer :: kernel
   integer :: nx,ny
@@ -17,7 +18,7 @@ subroutine dodecomp &
   real, dimension(nx,ny) :: img, outimg
   real, dimension(*) :: threshold,thresholdmin
   integer(kind=1), dimension(nx*ny) :: cond
-  integer, dimension(nx*ny) :: class
+  integer, dimension(nx*ny), target :: class
   real, dimension(*) :: bg, exposure, bgthresh, rwvmax
   logical :: poisson, qsavenoise
   character(len=*) :: outkey
@@ -27,6 +28,8 @@ subroutine dodecomp &
   real, dimension(nx*ny) ::  cj1,oimg
   real, dimension(nx*ny,*) ::  nimg
 
+  real, allocatable, dimension(:) :: bgsmo
+  
   integer :: tmode,tminmode
 
   logical :: savescale (1000)
@@ -49,7 +52,7 @@ subroutine dodecomp &
       
   integer :: nclass
   integer, parameter :: nclassmax=5000000
-  integer, dimension(nclassmax) :: idetect, xpeak, ypeak
+  integer, allocatable, dimension(:) :: idetect, xpeak, ypeak
   logical, external :: if_peak,if_min
   logical :: peak
   integer :: ndetect, npeak
@@ -72,6 +75,11 @@ subroutine dodecomp &
   character(len=20) :: affix
   character (len=200) :: outname
 
+  allocate (idetect(nclassmax), xpeak(nclassmax), ypeak(nclassmax))
+  idetect = 0
+  xpeak = 0
+  ypeak = 0
+  
   quiet = yespar ('quiet')
 
   poisson0=poisson
@@ -79,7 +87,7 @@ subroutine dodecomp &
 !c% Verify kernel
   if (kernel.ne.1.and.kernel.ne.2) then
     write (0,*) 'wrong kernel in dodecomp:', kernel
-    call exit(1)
+    call zhexit(1)
   endif
 
 !c% Read which scales not to save
@@ -133,12 +141,23 @@ subroutine dodecomp &
     call msarith (nimg,'=',0.0,nx*ny)
 !*        endif
   endif
+
+  if (subtractbg) then
+    allocate(bgsmo(nx*ny))
+  endif
       
   irecsh=1
 
 !c     d) loop over levels
         
   do j=scalemin,scalemax
+
+    if (subtractbg) then ! pre-compute wv-smoothed versions of the background
+      call conv_wavelet (kernel,bg,cj1,bgsmo,nx,ny,j,.false.) ! last arg
+      ! says whether or not the first two arrays are the same
+    endif
+
+    
     if (qerror) then ! calculate error image for this scale
       jerror = 2
 !*          if (qsavenoise) then
@@ -198,9 +217,9 @@ subroutine dodecomp &
         call marith(cj1,'=',cj1,'*',exposure,nx*ny)
       endif
       if (subtractbg) then
-        call marith(class,'=',class,'+',bg,nx*ny)
+        call marith(class,'=',class,'+',bgsmo,nx*ny)
       endif
-      
+       
       if (j.eq.1) then
         if ((.not.poisson0).and.(.not.qerror)) then
           call image_sigma (cj1,nx*ny,sigmagauss)
@@ -321,8 +340,8 @@ subroutine dodecomp &
           endif
         enddo
 
-
-        call ini_flood_fill (class,nx,ny,1,4) ! use 4-connect
+        !! not needed for f90 non-recursive version
+        ! call ini_flood_fill (class,nx,ny,1,4) ! use 4-connect
         nclass=0
 !****            t=sigmagauss*threshold(j)*sigmae(j)
         s=1.0/sigmae(j)**2
@@ -353,13 +372,16 @@ subroutine dodecomp &
                     if (abs(cj1(i)).gt.t) then
                       nclass=nclass+1
 !*                          call classb (cond,class,nx,ny,cond(i),nclass,ii,jj)
-                      call floodfill (ii,jj,-nclass,1)
+                      !call floodfill (ii,jj,-nclass,1)
+                      call flood_fill_77 (class,nx,ny,ii,jj,-nclass,1)
                     endif
                   else
                     if (cj1(i).gt.t) then
                       nclass=nclass+1
-!*                          call classb (cond,class,nx,ny,cond(i),nclass,ii,jj)
-                      call floodfill (ii,jj,-nclass,1)
+                      !*                          call classb (cond,class,nx,ny,cond(i),nclass,ii,jj)
+                      !call floodfill (ii,jj,-nclass,1)
+                      call flood_fill_77 (class,nx,ny,ii,jj,-nclass,1)
+                      
                     endif
                   endif
                 endif
@@ -379,7 +401,7 @@ subroutine dodecomp &
         if (nclass.gt.nclassmax) then
           write (0,*) 'ERROR: increase nclassmax to >',nclass,&
                ' in dodecomp'
-          call exit(1)
+          call zhexit(1)
         endif
 
         do i=1,nclass
@@ -533,7 +555,8 @@ subroutine dodecomp &
   if (qsavehist) then
     write(shdescriptor(1),'(i5,1x,i5,1x,i4,1x,i1)')nx,ny,irecsh-1,kernel
   endif
-      
+
+  deallocate(bgsmo, idetect, xpeak, ypeak)
   return
 end subroutine dodecomp
       

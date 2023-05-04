@@ -1,6 +1,6 @@
 FC = gfortran
 CC = gcc
-FFLAGS = -O -ffixed-line-length-132 -fno-second-underscore -Wall -g -fbackslash
+FFLAGS = -O -ffixed-line-length-132 -fno-second-underscore -Wall -g -fbackslash -fallow-argument-mismatch -Wno-integer-division
 
 CFLAGS=-g -O
 
@@ -21,7 +21,7 @@ CPPFLAGS = $(READLINE) -DEXPANDVARS=1
 OBJ = recordtype.o remleadblanks.o parstring.o irafstring.o parse_p_str.o \
 	chomp.o getarg.o lcase.o commandline.o logics.o parse_cont.o \
 	parfile.o parse_group.o readparf77_c.o readparf77.o \
-	get_pv_def.o expand_vars.o stringpar.o cl_r_par.o numbered_par.o
+	get_pv_def.o get_pv_def_w.o expand_vars.o stringpar.o cl_r_par.o numbered_par.o
 
 ../librp.a: ../librp.a($(OBJ))
 	$(RANLIB) ../librp.a
