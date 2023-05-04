@@ -9,7 +9,7 @@ subroutine dodecomp &
      nx,ny,scalemin,scalemax,threshold,thresholdmin,poisson,niter,tmode,&
      tminmode,detectnegative,subtractbg,divbyexp,threshbg,considershape, &
      qsavehist,qsavenoise,savehist,shdescriptor,outkey,rwvmax)
-  ! use floodfill90
+  !use floodfill90
   implicit none
   integer :: kernel
   integer :: nx,ny
