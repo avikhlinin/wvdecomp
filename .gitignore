@@ -3,3 +3,4 @@
 *.mod
 *.a
 wvdecomp
+.DS_Store
